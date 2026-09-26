@@ -38,7 +38,6 @@ import { Fraunces, Geist, Geist_Mono } from 'next/font/google';
 import { Button } from '@/components/ui/button';
 import {
   ArrowRight,
-  ArrowLeft,
   Sparkles,
   Globe,
   Mic,
@@ -206,13 +205,6 @@ export function StudioHome() {
             )}
             <span className={s.brandName}>AI Solution Craft</span>
           </Link>
-          <div className={s.navLinks}>
-            <Link href="/concepts" className={s.navLink}>
-              <ArrowLeft className="size-3.5" /> All designs
-            </Link>
-            <Link href="/concepts/gallery" className={s.navLink}>Gallery</Link>
-            <Link href="/concepts/noir" className={s.navLink}>Noir</Link>
-          </div>
           <div className={s.navCta}>
             <Link href="/login">
               <Button variant="ghost" size="sm">

@@ -4,21 +4,31 @@ import { useState } from 'react';
 import { SitePage } from '@/components/site/SitePage';
 
 export default function ContactPage() {
-  const [sent, setSent] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [error, setError] = useState('');
   const [form, setForm] = useState({ name: '', email: '', company: '', topic: 'Demo request', message: '' });
 
   const set = (k: keyof typeof form) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => setForm({ ...form, [k]: e.target.value });
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const subject = encodeURIComponent(`[AI Solution Craft] ${form.topic} — ${form.name}`);
-    const body = encodeURIComponent(
-      `Name: ${form.name}\nEmail: ${form.email}\nCompany: ${form.company}\nTopic: ${form.topic}\n\n${form.message}`,
-    );
-    window.location.href = `mailto:hello@aisolutioncraft.com?subject=${subject}&body=${body}`;
-    setSent(true);
+    setStatus('sending');
+    setError('');
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || 'Something went wrong.');
+      setStatus('sent');
+    } catch (err) {
+      setStatus('error');
+      setError(err instanceof Error ? err.message : 'Something went wrong.');
+    }
   }
 
   return (
@@ -34,10 +44,16 @@ export default function ContactPage() {
         </div>
 
         <section className="page-section">
-          {sent && (
+          {status === 'sent' && (
             <p className="form-note" role="status">
-              Thanks! Your email app should have opened with your message ready to
-              send. Press send there and we&apos;ll get back to you.
+              Thank you! Your message has been sent — we&apos;ll get back to you
+              within one business day.
+            </p>
+          )}
+          {status === 'error' && (
+            <p className="form-note" role="alert">
+              {error} Please try again or email us directly at
+              hello@aisolutioncraft.com.
             </p>
           )}
           <form className="contact-form" onSubmit={handleSubmit}>
@@ -74,7 +90,9 @@ export default function ContactPage() {
               />
             </label>
             <div>
-              <button type="submit" className="btn-primary">Send message</button>
+              <button type="submit" className="btn-primary" disabled={status === 'sending'}>
+                {status === 'sending' ? 'Sending…' : 'Send message'}
+              </button>
             </div>
             <p className="form-note">
               Prefer email? Write to us directly at hello@aisolutioncraft.com.

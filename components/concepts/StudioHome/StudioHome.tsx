@@ -205,6 +205,13 @@ export function StudioHome() {
             )}
             <span className={s.brandName}>AI Solution Craft</span>
           </Link>
+          <div className={s.navLinks}>
+            <Link href="/ai-assistant" className={s.navLink}>AI Assistant</Link>
+            <Link href="/features" className={s.navLink}>Features</Link>
+            <Link href="/use-cases" className={s.navLink}>Use Cases</Link>
+            <Link href="/about" className={s.navLink}>About</Link>
+            <Link href="/contact" className={s.navLink}>Contact</Link>
+          </div>
         </div>
       </motion.nav>
 

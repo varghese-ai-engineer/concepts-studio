@@ -44,12 +44,27 @@ export default function ContactPage() {
         </div>
 
         <section className="page-section">
-          {status === 'sent' && (
-            <p className="form-note" role="status">
-              Thank you! Your message has been sent — we&apos;ll get back to you
-              within one business day.
-            </p>
-          )}
+          {status === 'sent' ? (
+            <div className="contact-sent" role="status">
+              <p className="contact-sent-title">✓ Message sent</p>
+              <p>
+                Thank you, your message is on its way. We&apos;ll get back to you
+                within one business day. A confirmation email has also been sent
+                to you.
+              </p>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => {
+                  setForm({ name: '', email: '', company: '', topic: 'Demo request', message: '' });
+                  setStatus('idle');
+                }}
+              >
+                Send another message
+              </button>
+            </div>
+          ) : (
+            <>
           {status === 'error' && (
             <p className="form-note" role="alert">
               {error} Please try again or email us directly at
@@ -98,6 +113,8 @@ export default function ContactPage() {
               Prefer email? Write to us directly at vargheset@aisolutioncraft.com.
             </p>
           </form>
+            </>
+          )}
         </section>
       </div>
     </SitePage>

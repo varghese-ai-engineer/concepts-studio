@@ -603,3 +603,6 @@ main { flex: 1; }
 .contact-form input, .contact-form textarea, .contact-form select { background: #fff; border: 1px solid var(--sp-line); border-radius: 10px; padding: .7rem .9rem; color: var(--sp-ink); font: inherit; font-size: .95rem; }
 .contact-form input:focus, .contact-form textarea:focus, .contact-form select:focus { outline: 2px solid var(--sp-ember); border-color: transparent; }
 .form-note { font-size: .82rem; color: var(--sp-dim); }
+.contact-sent { background: var(--sp-card); border: 1px solid var(--sp-line); border-radius: 14px; padding: 2rem; max-width: 34rem; display: grid; gap: .9rem; }
+.contact-sent p { margin: 0; line-height: 1.7; color: var(--sp-ink-2); }
+.contact-sent-title { font-family: var(--font-fraunces), Georgia, serif; font-size: 1.3rem; font-weight: 600; color: var(--sp-ink) !important; }

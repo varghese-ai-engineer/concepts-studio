@@ -422,11 +422,6 @@ export function StudioHome() {
                     Start free <ArrowRight className="ml-2 size-4" />
                   </Button>
                 </Link>
-                <Link href="https://test.app.webchat.aisolutioncraft.com/">
-                  <Button variant="outline" size="lg">
-                    Compare all designs
-                  </Button>
-                </Link>
               </motion.div>
             </SceneShell>
           </div>

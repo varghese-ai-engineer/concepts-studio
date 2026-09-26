@@ -205,16 +205,6 @@ export function StudioHome() {
             )}
             <span className={s.brandName}>AI Solution Craft</span>
           </Link>
-          <div className={s.navCta}>
-            <Link href="/login">
-              <Button variant="ghost" size="sm">
-                Sign in
-              </Button>
-            </Link>
-            <Link href="/register">
-              <Button size="sm">Start free</Button>
-            </Link>
-          </div>
         </div>
       </motion.nav>
 

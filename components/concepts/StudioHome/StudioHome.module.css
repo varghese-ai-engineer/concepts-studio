@@ -1,0 +1,895 @@
+/* ============================================================
+   Design 1 — STUDIO  (/concepts/studio)
+   Editorial product-film. Warm-paper palette, serif display.
+   Self-contained tokens — does NOT touch globals.css or the theme.
+   ============================================================ */
+
+.page {
+  /* Palette — warm paper + ink + single ember signal */
+  --c-bg: #f4efe6;          /* warm paper */
+  --c-bg-2: #ece5d8;        /* slightly deeper paper */
+  --c-card: #fbf8f2;        /* cream card */
+  --c-ink: #1a1714;         /* near-black ink */
+  --c-ink-2: #3a342d;       /* secondary ink */
+  --c-ink-dim: #6b6358;     /* dim ink */
+  --c-ink-faint: #9a9082;   /* faint ink */
+  --c-line: #d9d0bf;        /* hairline */
+  --c-ember: #c8553d;       /* signal color */
+  --c-ember-soft: #e08a6f;  /* softer ember */
+
+  background: var(--c-bg);
+  color: var(--c-ink);
+  font-family: var(--font-studio-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+  z-index: 1; /* lift the page + content above the journey world (z-0) */
+}
+
+/* The main content + footer must ALWAYS render above the cinematic world layer,
+   no matter what the world/WebGL paints. They are independent of the robot. */
+.main {
+  position: relative;
+  z-index: 2;
+}
+
+/* Shared centered container */
+.shell {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ---------------- Top scroll-progress bar ---------------- */
+.progressBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(26, 23, 20, 0.08);
+  z-index: 60;
+}
+.progressFill {
+  height: 100%;
+  background: var(--c-ember);
+  transform-origin: left center;
+  will-change: transform;
+}
+
+/* ---------------- Film-leader INTRO sequence ----------------
+   The veil + wordmark fade; the MARK itself never fades (see
+   .travelingMark below). */
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.introVeil {
+  position: absolute;
+  inset: 0;
+  background: var(--c-ink);
+}
+.introWord {
+  position: absolute;
+  top: calc(50% + 132px); /* clear the 168px hero mark (radius 84) + gap */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  font-family: var(--font-studio-serif), Georgia, serif;
+  font-weight: 500;
+  color: #f4efe6;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding-left: 0.18em; /* offset added so trailing letter-spacing doesn't push text off-center */
+  white-space: nowrap;
+}
+
+/* The MARK — a single persistent element that never unmounts and never
+   changes opacity. It is position: fixed, centered in the viewport at scale 1
+   during loading, then motion scales + translates it to the nav slot where it
+   remains permanently (becoming the nav mark). z-index sits above the veil
+   during intro and above the nav once settled. */
+.travelingMark {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 95;
+  transform-origin: center center;
+  will-change: transform;
+  /* The half-width/half-height negative margins center the 168px hero mark.
+     motion/react sets transform (translate/scale) on top of this, so we must
+     NOT use translate here (it would conflict). Using margins keeps the
+     resting centering purely in layout, leaving transform free for motion. */
+  width: 168px;
+  height: 168px;
+  margin-left: -84px;
+  margin-top: -84px;
+}
+
+/* ---------------- BrandMark — single identity (intro + nav) ---------------- */
+.brandMark {
+  position: relative;
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+.brandMarkHero {
+  width: 168px;
+  height: 168px;
+}
+.brandMarkRing {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--c-ink);
+  background: var(--c-bg);
+}
+.brandMarkHero .brandMarkRing {
+  border-width: 3px;
+}
+.brandMarkDot {
+  position: absolute;
+  inset: 28%;
+  border-radius: 50%;
+  background: var(--c-ember);
+}
+.brandMarkHero .brandMarkDot {
+  box-shadow: 0 0 32px rgba(200, 85, 61, 0.35);
+}
+
+/* ---------------- Nav ---------------- */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  transition: background-color 0.4s ease, border-color 0.4s ease, backdrop-filter 0.4s ease;
+  border-bottom: 1px solid transparent;
+}
+.nav[data-scrolled='on'] {
+  background: rgba(244, 239, 230, 0.85);
+  border-bottom-color: var(--c-line);
+}
+.nav .shell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 68px;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--c-ink);
+}
+/* Invisible space-reserver matching the nav mark's footprint. The real,
+   visible mark is the persistent .travelingMark, which lands exactly on top
+   of this slot once the intro completes. This spacer keeps the nav layout
+   stable and carries the click target. */
+.brandMarkSpacer {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+/* .brandMark is now defined in the INTRO section above — single identity
+   shared by the intro hero mark and the nav mark. */
+.brandName {
+  font-family: var(--font-studio-serif), Georgia, serif;
+  font-weight: 500;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+.navLinks {
+  display: none;
+}
+@media (min-width: 768px) {
+  .navLinks {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+}
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--c-ink-dim);
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: color 0.2s ease;
+}
+.navLink:hover {
+  color: var(--c-ink);
+}
+.navCta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ---------------- Shared typography bits ---------------- */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-studio-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--c-ember);
+  margin: 0 0 20px 0;
+}
+.chapter {
+  padding: 96px 0;
+  position: relative;
+}
+@media (min-width: 768px) {
+  .chapter {
+    padding: 140px 0;
+  }
+}
+.chapterTitle {
+  font-family: var(--font-studio-serif), Georgia, serif;
+  font-weight: 400;
+  font-variation-settings: 'opsz' 144, 'SOFT' 50;
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0 0 20px 0;
+  max-width: 18ch;
+  color: var(--c-ink);
+}
+.chapterLead {
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  line-height: 1.6;
+  color: var(--c-ink-dim);
+  max-width: 56ch;
+  margin: 0 0 56px 0;
+}
+
+/* ---------------- Chapter 1: Hero ---------------- */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 120px 0 80px 0;
+}
+.heroTitle {
+  font-family: var(--font-studio-serif), Georgia, serif;
+  font-weight: 400;
+  font-variation-settings: 'opsz' 144, 'SOFT' 50;
+  font-size: clamp(2.6rem, 8vw, 6rem);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  margin: 0 0 32px 0;
+  color: var(--c-ink);
+}
+.ember {
+  color: var(--c-ember);
+  position: relative;
+  display: inline-block;
+}
+.caret {
+  display: inline-block;
+  width: 0.06em;
+  height: 0.9em;
+  background: var(--c-ember);
+  margin-left: 0.08em;
+  vertical-align: -0.05em;
+  animation: blink 1s steps(2) infinite;
+}
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+.heroLead {
+  font-size: clamp(1.05rem, 1.8vw, 1.35rem);
+  line-height: 1.6;
+  color: var(--c-ink-2);
+  max-width: 52ch;
+  margin: 0 0 40px 0;
+}
+.heroCta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Hero — bottom film-scrubber */
+.scrubber {
+  margin-top: auto;
+  padding: 32px 0 8px 0;
+}
+.scrubber .shell {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.scrubberLabel,
+.scrubberTime {
+  font-family: var(--font-studio-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--c-ink-faint);
+  white-space: nowrap;
+}
+.scrubberTrack {
+  position: relative;
+  flex: 1;
+  height: 2px;
+  background: rgba(26, 23, 20, 0.12);
+  border-radius: 1px;
+}
+.scrubberHead {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--c-ember);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 4px rgba(200, 85, 61, 0.15);
+  transition: left 0.1s linear;
+}
+
+/* ---------------- Chapter 2: Problem pull-quote ---------------- */
+.pullquote {
+  margin: 0;
+  position: relative;
+  padding: 24px 0 24px 48px;
+  border-left: 2px solid var(--c-ember);
+}
+.quoteMark {
+  position: absolute;
+  left: 20px;
+  top: -20px;
+  font-family: var(--font-studio-serif), Georgia, serif;
+  font-size: 5rem;
+  line-height: 1;
+  color: var(--c-ember);
+  opacity: 0.5;
+}
+.pullquote p {
+  font-family: var(--font-studio-serif), Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(1.6rem, 4vw, 3rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--c-ink);
+  margin: 0 0 24px 0;
+  max-width: 22ch;
+}
+.cite {
+  display: block;
+  font-family: var(--font-studio-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--c-ink-faint);
+  font-style: normal;
+}
+
+/* ---------------- Chapter 3: Pipeline diagram ---------------- */
+.pipeline {
+  margin-top: 24px;
+  position: relative;
+}
+.pipelineLine {
+  position: absolute;
+  top: 22px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 4px;
+}
+.lineTrack {
+  stroke: rgba(26, 23, 20, 0.12);
+  stroke-width: 2;
+}
+.lineDraw {
+  stroke: var(--c-ember);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.pipelineStages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+.pipelineStage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex: 1;
+  min-width: 0;
+}
+.stageNode {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-card);
+  border: 1.5px solid var(--c-line);
+  color: var(--c-ink-faint);
+  transition: all 0.5s ease;
+}
+.pipelineStage[data-active='on'] .stageNode {
+  background: var(--c-ember);
+  border-color: var(--c-ember);
+  color: #fbf8f2;
+  transform: scale(1.08);
+}
+.stageLabel {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.stageIndex {
+  font-family: var(--font-studio-mono), ui-monospace, monospace;
+  font-size: 0.62rem;
+  color: var(--c-ink-faint);
+  letter-spacing: 0.1em;
+}
+.stageLabel {
+  font-size: 0.85rem;
+  color: var(--c-ink-dim);
+  transition: color 0.5s ease;
+}
+.pipelineStage[data-active='on'] .stageLabel {
+  color: var(--c-ink);
+  font-weight: 500;
+}
+
+/* ---------------- Chapter 4: Voice & multilingual ---------------- */
+.voiceGrid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px) {
+  .voiceGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.voiceCard {
+  background: var(--c-card);
+  border: 1px solid var(--c-line);
+  border-radius: 16px;
+  padding: 40px 32px;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
+}
+.voiceCaption {
+  font-size: 0.95rem;
+  color: var(--c-ink-dim);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Waveform — single elegant ink-line bars */
+.waveform {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 64px;
+}
+.waveBar {
+  display: block;
+  width: 3px;
+  height: 100%;
+  background: var(--c-ink);
+  border-radius: 2px;
+  transform-origin: center;
+}
+[data-reduce='on'] .waveBar {
+  transform: scaleY(0.5);
+}
+
+/* Language cycle */
+.langCycle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 64px;
+}
+.langWord {
+  font-family: var(--font-studio-serif), Georgia, serif;
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  color: var(--c-ink);
+  line-height: 1;
+}
+.langSub {
+  font-family: var(--font-studio-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--c-ink-faint);
+}
+
+/* ---------------- Chapter 5: Results grid ---------------- */
+.resultsGrid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) {
+  .resultsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .resultsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.resultCard {
+  background: var(--c-card);
+  border: 1px solid var(--c-line);
+  border-radius: 16px;
+  padding: 32px 28px;
+}
+.resultIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(200, 85, 61, 0.1);
+  color: var(--c-ember);
+  margin-bottom: 20px;
+}
+.resultIcon svg {
+  width: 18px;
+  height: 18px;
+}
+.resultTitle {
+  font-family: var(--font-studio-serif), Georgia, serif;
+  font-weight: 500;
+  font-size: 1.35rem;
+  color: var(--c-ink);
+  margin: 0 0 10px 0;
+  letter-spacing: -0.01em;
+}
+.resultText {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--c-ink-dim);
+  margin: 0;
+}
+
+/* ---------------- Chapter 7: Final CTA ---------------- */
+.finalCta {
+  padding: 140px 0;
+  text-align: center;
+  border-top: 1px solid var(--c-line);
+  margin-top: 40px;
+}
+.finalTitle {
+  font-family: var(--font-studio-serif), Georgia, serif;
+  font-weight: 400;
+  font-variation-settings: 'opsz' 144, 'SOFT' 50;
+  font-size: clamp(2.2rem, 6vw, 4.5rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin: 0 0 20px 0;
+  color: var(--c-ink);
+}
+.finalLead {
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  color: var(--c-ink-dim);
+  margin: 0 0 40px 0;
+}
+.finalButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* ---------------- Footer ---------------- */
+.footer {
+  position: relative;
+  z-index: 2; /* above the journey world */
+  border-top: 1px solid var(--c-line);
+  padding: 28px 0;
+  background: var(--c-bg-2);
+}
+.footer .shell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-family: var(--font-studio-mono), ui-monospace, monospace;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--c-ink-faint);
+}
+
+/* ---------------- Scene shell (continuity wrapper) ---------------- */
+.sceneShell {
+  position: relative;
+}
+
+/* ---------------- Chapter 6: Pricing (API-driven) ---------------- */
+/* Numbered editorial tiers in the warm-paper/ember language — not a generic
+   SaaS grid. Data still flows from GET /api/v1/plans; only presentation
+   is bespoke to this page. */
+.priceToggleRow {
+  display: flex;
+  justify-content: center;
+  margin: 8px 0 48px 0;
+}
+.priceLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 64px 0;
+  font-family: var(--font-studio-mono), ui-monospace, monospace;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--c-ink-faint);
+}
+.priceEmpty {
+  padding: 48px 0;
+  text-align: center;
+  color: var(--c-ink-dim);
+  font-size: 0.95rem;
+}
+
+.priceList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+  grid-template-columns: 1fr;
+  border-top: 1px solid var(--c-line);
+}
+@media (min-width: 900px) {
+  .priceList {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.priceCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 40px 32px 36px 32px;
+  border-bottom: 1px solid var(--c-line);
+  border-right: 1px solid var(--c-line);
+  background: transparent;
+  transition: background-color 0.5s ease;
+}
+@media (min-width: 900px) {
+  .priceCard:last-child {
+    border-right: none;
+  }
+}
+@media (max-width: 899px) {
+  .priceCard {
+    border-right: none;
+  }
+}
+.priceCard:hover {
+  background: rgba(251, 248, 242, 0.6);
+}
+.priceCardFeatured {
+  background: var(--c-card);
+}
+.priceCardFeatured:hover {
+  background: var(--c-card);
+}
+
+.priceCardHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.priceTierIndex {
+  font-family: var(--font-studio-mono), ui-monospace, monospace;
+  font-size: 0.66rem;
+  color: var(--c-ink-faint);
+  letter-spacing: 0.12em;
+}
+.priceTierName {
+  font-family: var(--font-studio-serif), Georgia, serif;
+  font-weight: 500;
+  font-size: 1.5rem;
+  color: var(--c-ink);
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+.priceBadge {
+  margin-left: auto;
+  font-family: var(--font-studio-mono), ui-monospace, monospace;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--c-ember);
+  border: 1px solid var(--c-ember);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.priceDesc {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--c-ink-dim);
+  margin: 0 0 28px 0;
+  min-height: 2.7em;
+}
+
+.priceAmountRow {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.priceSymbol {
+  font-family: var(--font-studio-serif), Georgia, serif;
+  font-size: 1.3rem;
+  color: var(--c-ink-2);
+}
+.priceSymbolSuffix {
+  font-family: var(--font-studio-mono), ui-monospace, monospace;
+  font-size: 0.7rem;
+  color: var(--c-ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.priceAmount {
+  font-family: var(--font-studio-serif), Georgia, serif;
+  font-weight: 400;
+  font-variation-settings: 'opsz' 144;
+  font-size: clamp(2.6rem, 5vw, 3.6rem);
+  line-height: 1;
+  color: var(--c-ink);
+  letter-spacing: -0.03em;
+}
+.pricePer {
+  font-family: var(--font-studio-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  color: var(--c-ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-left: 4px;
+}
+.priceBilledNote {
+  font-family: var(--font-studio-mono), ui-monospace, monospace;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--c-ember);
+  margin: 0 0 28px 0;
+  min-height: 1em;
+  visibility: hidden;
+}
+.priceBilledNote[data-on='on'] {
+  visibility: visible;
+}
+
+.priceFeatures {
+  list-style: none;
+  margin: 0 0 32px 0;
+  padding: 24px 0 0 0;
+  border-top: 1px solid var(--c-line);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+.priceFeature {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--c-ink-2);
+}
+.priceCheck {
+  color: var(--c-ember);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.priceCta {
+  appearance: none;
+  cursor: pointer;
+  font-family: var(--font-studio-sans), system-ui, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  padding: 12px 20px;
+  border-radius: 8px;
+  transition: all 0.25s ease;
+  width: 100%;
+  text-align: center;
+}
+.priceCta[data-variant='solid'] {
+  background: var(--c-ember);
+  color: #fbf8f2;
+  border: 1px solid var(--c-ember);
+}
+.priceCta[data-variant='solid']:hover {
+  background: #b0452f;
+  border-color: #b0452f;
+}
+.priceCta[data-variant='outline'] {
+  background: transparent;
+  color: var(--c-ink);
+  border: 1px solid var(--c-line);
+}
+.priceCta[data-variant='outline']:hover {
+  border-color: var(--c-ink);
+  background: var(--c-card);
+}
+
+.priceFootnote {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--c-line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-family: var(--font-studio-mono), ui-monospace, monospace;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--c-ink-faint);
+}
+.priceSeeAll {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--c-ember);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  transition: gap 0.25s ease;
+}
+.priceSeeAll:hover {
+  gap: 10px;
+}

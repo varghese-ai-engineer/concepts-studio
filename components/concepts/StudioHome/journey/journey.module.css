@@ -1,0 +1,245 @@
+/* ============================================================
+   Journey — cinematic robot scroll experience.
+   Layered BEHIND content (z-index < content), pointer-events none
+   on world/bot layers (only the SceneRail is interactive).
+   Palette reuses the Studio tokens (warm paper + ink + ember).
+   ============================================================ */
+
+/* ---------------- Scene rail (the only interactive journey layer) ---------------- */
+.sceneRail {
+  position: fixed;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 45; /* above the world (40) and content backdrop, below nav (50) */
+  pointer-events: none; /* the container doesn't catch; ticks re-enable */
+}
+@media (max-width: 768px) {
+  .sceneRail {
+    display: none; /* mobile: skip the rail to save space; jump-scroll lives via nav */
+  }
+}
+.sceneRailList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.sceneRailItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.sceneRailTick {
+  pointer-events: auto;
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 6px;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  transition: transform 0.25s ease;
+}
+.sceneRailTick:hover {
+  transform: scale(1.15);
+}
+.sceneRailDot {
+  display: block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--c-ink-faint, #9a9082);
+  background: transparent;
+  transition: all 0.3s ease;
+}
+.sceneRailDot[data-filled='on'] {
+  background: var(--c-ember, #c8553d);
+  border-color: var(--c-ember, #c8553d);
+}
+.sceneRailTickActive .sceneRailDot {
+  box-shadow: 0 0 0 4px rgba(200, 85, 61, 0.18);
+}
+.sceneRailLabel {
+  position: absolute;
+  left: 30px;
+  white-space: nowrap;
+  font-family: var(--font-studio-mono), ui-monospace, monospace;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--c-ink-faint, #9a9082);
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+.sceneRailTick:hover + .sceneRailLabel,
+.sceneRailLabelActive {
+  opacity: 1;
+  transform: translateX(0);
+  color: var(--c-ink, #1a1714);
+}
+
+/* ---------------- The 3D world (CSS 3D) ----------------
+   IMPORTANT: this layer is an ENHANCEMENT over the page. It must NEVER cover
+   or hide the page content. It sits at z-index 0 (behind the content, which
+   is lifted to z-index 1 via .page > main). pointer-events: none so it never
+   blocks interaction. Even if WebGL paints something, it renders BEHIND text. */
+.world {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  perspective: 1200px;
+  perspective-origin: 50% 40%;
+  overflow: hidden;
+}
+/* The moving rig: every scene layer is a child. We translate this whole rig up
+   by scrollProgress * WORLD_DEPTH to simulate a downward camera dolly. */
+.worldRig {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Background tint that shifts subtly with depth (paper → slightly cooler in the
+   knowledge core → warm again at conversion). Driven by JS via CSS vars. */
+.worldTint {
+  position: absolute;
+  inset: 0;
+  background: var(--c-bg, #f4efe6);
+  transition: background-color 0.6s ease;
+}
+
+/* A scene layer = a full-viewport plane placed at a depth. */
+.sceneLayer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+}
+
+/* Particle primitives — cheap DOM nodes positioned in 3D. */
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--c-ember, #c8553d);
+  opacity: 0.5;
+  will-change: transform, opacity;
+}
+.particleInk {
+  background: var(--c-ink, #1a1714);
+  opacity: 0.25;
+}
+.particleGold {
+  background: #b89968;
+  opacity: 0.6;
+}
+
+/* (The WebGL robot + its canvas were removed — did not fit this design.
+    The journey is now purely the CSS-3D world + scene rail.) */
+
+/* ---------------- Scene content primitives ---------------- */
+.sceneInner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+}
+.sceneField {
+  position: relative;
+  width: 80vw;
+  height: 80vh;
+  max-width: 900px;
+  max-height: 700px;
+}
+
+/* (Arrival scene's ember orb + platform were removed — clashed with content.) */
+
+/* Crawl: filament + shards */
+.filament {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--c-ember, #c8553d), transparent);
+  opacity: 0.4;
+}
+.shard {
+  background: var(--c-ember, #c8553d) !important;
+  border-radius: 2px !important;
+  opacity: 0.7 !important;
+}
+
+/* Knowledge: core + ring */
+.core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 140px;
+  height: 140px;
+  margin: -70px 0 0 -70px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, rgba(255,255,255,0.9), rgba(200,85,61,0.5) 50%, transparent 75%);
+  box-shadow: 0 0 80px 20px rgba(200, 85, 61, 0.25);
+}
+.coreRing {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 260px;
+  height: 260px;
+  margin: -130px 0 0 -130px;
+  border-radius: 50%;
+  border: 1px solid var(--c-line, #d9d0bf);
+  opacity: 0.5;
+}
+.coreSmall {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 70px;
+  height: 70px;
+  margin: -35px 0 0 -35px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.85), rgba(200,85,61,0.4) 60%, transparent);
+}
+
+/* Understanding: beams */
+.beam {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, transparent, var(--c-ember, #c8553d), transparent);
+  transform-origin: center;
+  opacity: 0;
+}
+.beamOut {
+  background: linear-gradient(180deg, transparent, #e08a6f, transparent);
+}
+
+/* Voice: sound rings */
+.soundRing {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120px;
+  height: 120px;
+  margin: -60px 0 0 -60px;
+  border-radius: 50%;
+  border: 1.5px solid var(--c-ember, #c8553d);
+  opacity: 0;
+}

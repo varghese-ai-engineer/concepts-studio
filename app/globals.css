@@ -1,0 +1,556 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ─────────────────────────────────────────────────────────────────────────
+   @theme inline — maps Tailwind utility classes to CSS variables
+   so that "bg-background", "border-border", "text-foreground" etc.
+   all respond automatically to whichever theme is active.
+───────────────────────────────────────────────────────────────────────── */
+@theme inline {
+  --color-background:          var(--background);
+  --color-foreground:          var(--foreground);
+  --color-card:                var(--card);
+  --color-card-foreground:     var(--card-foreground);
+  --color-popover:             var(--popover);
+  --color-popover-foreground:  var(--popover-foreground);
+  --color-primary:             var(--primary);
+  --color-primary-foreground:  var(--primary-foreground);
+  --color-secondary:           var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted:               var(--muted);
+  --color-muted-foreground:    var(--muted-foreground);
+  --color-accent:              var(--accent);
+  --color-accent-foreground:   var(--accent-foreground);
+  --color-destructive:         var(--destructive);
+  --color-border:              var(--border);
+  --color-input:               var(--input);
+  --color-ring:                var(--ring);
+  --color-sidebar:             var(--sidebar);
+  --color-sidebar-foreground:  var(--sidebar-foreground);
+  --color-sidebar-primary:     var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent:      var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border:      var(--sidebar-border);
+  --color-sidebar-ring:        var(--sidebar-ring);
+  --color-chart-1:             var(--chart-1);
+  --color-chart-2:             var(--chart-2);
+  --color-chart-3:             var(--chart-3);
+  --color-chart-4:             var(--chart-4);
+  --color-chart-5:             var(--chart-5);
+  --font-sans:                 var(--font-sans);
+  --font-mono:                 var(--font-geist-mono);
+  --radius-sm:                 calc(var(--radius) * 0.6);
+  --radius-md:                 calc(var(--radius) * 0.85);
+  --radius-lg:                 var(--radius);
+  --radius-xl:                 calc(var(--radius) * 1.4);
+  --radius-2xl:                calc(var(--radius) * 1.8);
+  --radius-3xl:                calc(var(--radius) * 2.2);
+
+  /* ── Intermediate gray/color steps used across page components ── */
+  /* These are FIXED values shared by both themes.                   */
+  /* All border-use values are dark enough to be visible on white.  */
+  --color-gray-55:   oklch(0.982 0.002 264);
+  --color-gray-105:  oklch(0.972 0.003 264);
+  --color-gray-150:  oklch(0.910 0.009 264);   /* ≈ #e5e7ea  visible border */
+  --color-gray-205:  oklch(0.905 0.010 264);   /* ≈ #e3e5eb  visible border */
+  --color-gray-250:  oklch(0.886 0.012 264);   /* ≈ #dde0e8  divider       */
+  --color-gray-255:  oklch(0.884 0.012 264);
+  --color-gray-305:  oklch(0.862 0.010 258);   /* ≈ #d5d7e1  input border  */
+  --color-gray-350:  oklch(0.802 0.014 258);
+  --color-gray-405:  oklch(0.734 0.018 264);
+  --color-gray-450:  oklch(0.640 0.020 264);
+  --color-gray-455:  oklch(0.638 0.020 264);
+  --color-gray-550:  oklch(0.506 0.026 258);
+  --color-gray-650:  oklch(0.411 0.030 258);
+  --color-gray-655:  oklch(0.409 0.030 258);
+  --color-gray-750:  oklch(0.328 0.032 260);
+  --color-gray-805:  oklch(0.276 0.033 257);
+  --color-gray-850:  oklch(0.246 0.033 258);
+  --color-gray-905:  oklch(0.208 0.034 263);
+  --color-blue-450:  oklch(0.655 0.195 263);
+  --color-blue-650:  oklch(0.498 0.210 263);
+  --color-blue-750:  oklch(0.420 0.200 262);
+  --color-blue-850:  oklch(0.342 0.165 260);
+  --color-indigo-150: oklch(0.940 0.042 283);
+  --color-indigo-650: oklch(0.488 0.220 281);
+  --color-indigo-750: oklch(0.408 0.205 280);
+  --color-purple-650: oklch(0.491 0.215 293);
+  --color-purple-750: oklch(0.406 0.192 292);
+  --color-red-150:   oklch(0.948 0.060 25);
+  --color-red-650:   oklch(0.508 0.230 27);
+  --color-red-750:   oklch(0.430 0.210 25);
+  --color-green-150: oklch(0.948 0.062 152);
+  --color-green-650: oklch(0.488 0.180 152);
+  --color-amber-250: oklch(0.886 0.128 84);
+  --color-cyan-650:  oklch(0.480 0.162 206);
+  --color-orange-655: oklch(0.548 0.178 52);
+  --color-pink-650:  oklch(0.514 0.220 337);
+  --color-rose-450:  oklch(0.668 0.208 12);
+  --color-rose-650:  oklch(0.510 0.225 12);
+  --color-teal-650:  oklch(0.494 0.125 186);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODERN THEME  (data-theme="modern")  — DEFAULT
+   Inspired by Stripe, Linear, Vercel. Premium enterprise SaaS.
+   • Page background is clearly off-white → white cards float above it
+   • Borders are visibly gray, not near-white
+   • Primary = strong blue with clear contrast
+   • Muted text is dark enough to read without effort
+═══════════════════════════════════════════════════════════════════════════ */
+:root,
+html[data-theme="modern"] {
+  /* Page */
+  --background:           oklch(0.964 0.005 250);   /* #f4f5f8 off-white page      */
+  --foreground:           oklch(0.108 0 0);          /* #1a1a1b near-black text      */
+
+  /* Cards — always white, visible above page */
+  --card:                 oklch(1 0 0);              /* #ffffff                      */
+  --card-foreground:      oklch(0.108 0 0);
+
+  --popover:              oklch(1 0 0);
+  --popover-foreground:   oklch(0.108 0 0);
+
+  /* Brand blue — strong, unmistakable */
+  --primary:              oklch(0.541 0.231 264.376); /* blue-600 = #2563eb          */
+  --primary-foreground:   oklch(0.985 0 0);
+
+  /* Secondary — blue-tinted light gray, clearly not primary */
+  --secondary:            oklch(0.925 0.012 264);
+  --secondary-foreground: oklch(0.215 0.025 264);
+
+  /* Muted */
+  --muted:                oklch(0.946 0.006 264);
+  --muted-foreground:     oklch(0.490 0.012 260);   /* #6b7280 readable gray        */
+
+  /* Accent */
+  --accent:               oklch(0.938 0.010 264);
+  --accent-foreground:    oklch(0.215 0.025 264);
+
+  --destructive:          oklch(0.577 0.245 27.325); /* red-600                     */
+
+  /* Borders — CLEARLY VISIBLE. Not near-white.  */
+  --border:               oklch(0.904 0.009 264);   /* #e2e3ea card/divider border  */
+  --input:                oklch(0.855 0.012 260);   /* #cfd1da form input border    */
+  --ring:                 oklch(0.541 0.231 264.376);/* focus ring = primary         */
+
+  /* Charts */
+  --chart-1:  oklch(0.541 0.231 264.376);
+  --chart-2:  oklch(0.596 0.165 162.5);
+  --chart-3:  oklch(0.669 0.179 305.3);
+  --chart-4:  oklch(0.686 0.178 45.2);
+  --chart-5:  oklch(0.592 0.235 29.2);
+
+  /* Shape */
+  --radius: 0.5rem;
+
+  /* Sidebar — white, standing above the gray page */
+  --sidebar:                    oklch(1 0 0);
+  --sidebar-foreground:         oklch(0.108 0 0);
+  --sidebar-primary:            oklch(0.541 0.231 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent:             oklch(0.938 0.010 264);
+  --sidebar-accent-foreground:  oklch(0.215 0.025 264);
+  --sidebar-border:             oklch(0.904 0.009 264);
+  --sidebar-ring:               oklch(0.541 0.231 264.376);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CLASSIC THEME  (data-theme="classic")
+   Original shadcn/ui baseline — white page, subtle borders.
+   Kept so teams that prefer minimal chrome can switch back.
+═══════════════════════════════════════════════════════════════════════════ */
+html[data-theme="classic"] {
+  --background:           oklch(1 0 0);
+  --foreground:           oklch(0.145 0 0);
+  --card:                 oklch(1 0 0);
+  --card-foreground:      oklch(0.145 0 0);
+  --popover:              oklch(1 0 0);
+  --popover-foreground:   oklch(0.145 0 0);
+  --primary:              oklch(0.541 0.231 264.376);  /* blue-600 in both themes */
+  --primary-foreground:   oklch(0.985 0 0);
+  --secondary:            oklch(0.970 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted:                oklch(0.970 0 0);
+  --muted-foreground:     oklch(0.556 0 0);
+  --accent:               oklch(0.970 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive:          oklch(0.577 0.245 27.325);
+  --border:               oklch(0.922 0 0);   /* original shadcn — subtle */
+  --input:                oklch(0.922 0 0);
+  --ring:                 oklch(0.541 0.231 264.376);
+  --chart-1:  oklch(0.541 0.231 264.376);
+  --chart-2:  oklch(0.596 0.165 162.5);
+  --chart-3:  oklch(0.669 0.179 305.3);
+  --chart-4:  oklch(0.686 0.178 45.2);
+  --chart-5:  oklch(0.592 0.235 29.2);
+  --radius: 0.625rem;
+  --sidebar:                    oklch(0.985 0 0);
+  --sidebar-foreground:         oklch(0.145 0 0);
+  --sidebar-primary:            oklch(0.541 0.231 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent:             oklch(0.970 0 0);
+  --sidebar-accent-foreground:  oklch(0.205 0 0);
+  --sidebar-border:             oklch(0.922 0 0);
+  --sidebar-ring:               oklch(0.541 0.231 264.376);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NEO CYBER THEME (data-theme="neo-cyber")
+   Futuristic, dark-neon cyberpunk layout.
+   • Deep space/carbon background with glowing pink/cyan borders
+   • Bright neon accent colors (cyan, magenta, yellow)
+   • Monospace elements, sharp borders, glows, custom animations
+   • Completely different visual identity.
+═══════════════════════════════════════════════════════════════════════════ */
+html[data-theme="neo-cyber"] {
+  --background:           oklch(0.120 0.025 285);   /* #0d0614 deep space dark purple */
+  --foreground:           oklch(0.950 0.060 150);   /* #e0ffec bright cyber-white */
+  --card:                 oklch(0.155 0.035 285);   /* #150b20 carbon card bg */
+  --card-foreground:      oklch(0.985 0.060 150);
+  --popover:              oklch(0.155 0.035 285);
+  --popover-foreground:   oklch(0.985 0.060 150);
+  
+  --primary:              oklch(0.680 0.280 330);   /* #ff007f neon pink/magenta */
+  --primary-foreground:   oklch(0.100 0.000 0);
+  
+  --secondary:            oklch(0.780 0.220 190);   /* #00f3ff neon cyan */
+  --secondary-foreground: oklch(0.100 0.000 0);
+  
+  --muted:                oklch(0.190 0.025 285);   /* #201330 dark muted purple */
+  --muted-foreground:     oklch(0.650 0.120 330);   /* muted pink text */
+  
+  --accent:               oklch(0.850 0.200 95);    /* #ffea00 neon yellow */
+  --accent-foreground:    oklch(0.100 0.000 0);
+  
+  --destructive:          oklch(0.550 0.260 25);     /* neon red */
+  
+  --border:               oklch(0.350 0.150 330 / 70%); /* semi-transparent glowing pink border */
+  --input:                oklch(0.300 0.150 190 / 60%); /* cyan-tinted input border */
+  --ring:                 oklch(0.780 0.220 190);   /* neon cyan focus ring */
+  
+  --radius: 0.125rem;       /* Sharp neo-brutalist tech corners */
+  
+  --sidebar:              oklch(0.100 0.020 285);   /* deep sidebar bg */
+  --sidebar-foreground:   oklch(0.900 0.050 150);
+  --sidebar-border:       oklch(0.250 0.100 330);
+  --sidebar-accent:       oklch(0.200 0.050 330);
+  --sidebar-accent-foreground: oklch(0.780 0.220 190);
+  --sidebar-ring:         oklch(0.780 0.220 190);
+}
+
+/* Neo Cyber CSS styling overrides */
+html[data-theme="neo-cyber"] h1,
+html[data-theme="neo-cyber"] h2,
+html[data-theme="neo-cyber"] h3,
+html[data-theme="neo-cyber"] h4,
+html[data-theme="neo-cyber"] h5,
+html[data-theme="neo-cyber"] h6 {
+  font-family: var(--font-geist-mono), Courier, monospace !important;
+  text-transform: uppercase;
+  letter-spacing: 0.075em;
+  text-shadow: 0 0 8px oklch(0.680 0.280 330 / 40%), 0 0 20px oklch(0.680 0.280 330 / 10%);
+}
+
+html[data-theme="neo-cyber"] .card,
+html[data-theme="neo-cyber"] [role="region"],
+html[data-theme="neo-cyber"] div.border {
+  box-shadow: 0 0 15px oklch(0.680 0.280 330 / 5%), inset 0 0 5px oklch(0.780 0.220 190 / 3%);
+  border-color: oklch(0.350 0.150 330 / 50%) !important;
+}
+
+html[data-theme="neo-cyber"] input,
+html[data-theme="neo-cyber"] select,
+html[data-theme="neo-cyber"] textarea {
+  font-family: var(--font-geist-mono), Courier, monospace !important;
+  border-radius: 0px !important;
+  border-color: oklch(0.300 0.150 190 / 60%) !important;
+  background-color: oklch(0.100 0.020 285) !important;
+}
+
+html[data-theme="neo-cyber"] input:focus,
+html[data-theme="neo-cyber"] textarea:focus {
+  border-color: oklch(0.780 0.220 190) !important;
+  box-shadow: 0 0 10px oklch(0.780 0.220 190 / 40%) !important;
+}
+
+html[data-theme="neo-cyber"] button:not(.relative) {
+  border-radius: 0px !important;
+}
+
+/* Custom glowing loading spinner for neo-cyber */
+html[data-theme="neo-cyber"] .animate-spin {
+  border-top-color: oklch(0.780 0.220 190) !important;
+  border-right-color: oklch(0.680 0.280 330) !important;
+  filter: drop-shadow(0 0 5px oklch(0.780 0.220 190 / 60%));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BREEZE LIGHT THEME (data-theme="breeze")
+   Professional, premium, soft-light slate & emerald theme.
+   • Ultra soft light-blue background with pure white cards
+   • Elegant deep emerald green primary and sky-blue secondary highlights
+   • Pill rounded buttons, soft shadows, right-sided sidebar layout
+═══════════════════════════════════════════════════════════════════════════ */
+html[data-theme="breeze"] {
+  --background:           oklch(0.982 0.008 210);   /* #f0f9ff ultra-soft sky tint */
+  --foreground:           oklch(0.200 0.035 170);   /* deep slate-teal */
+  --card:                 oklch(1.000 0.000 0);     /* white cards */
+  --card-foreground:      oklch(0.200 0.035 170);
+  --popover:              oklch(1.000 0.000 0);
+  --popover-foreground:   oklch(0.200 0.035 170);
+  
+  --primary:              oklch(0.480 0.145 170);   /* premium emerald-teal #0d9488 */
+  --primary-foreground:   oklch(0.990 0.005 170);
+  
+  --secondary:            oklch(0.930 0.025 210);   /* soft sky #e0f2fe */
+  --secondary-foreground: oklch(0.350 0.120 210);
+  
+  --muted:                oklch(0.965 0.010 210);   /* light muted tint */
+  --muted-foreground:     oklch(0.450 0.030 170);   /* soft slate-gray-teal */
+  
+  --accent:               oklch(0.935 0.040 150);   /* light mint */
+  --accent-foreground:    oklch(0.250 0.100 170);
+  
+  --destructive:          oklch(0.600 0.180 25);     /* soft coral red */
+  
+  --border:               oklch(0.925 0.015 210);   /* thin clean slate-blue border */
+  --input:                oklch(0.880 0.020 210);
+  --ring:                 oklch(0.480 0.145 170);
+  
+  --radius: 0.75rem;       /* Elegant rounded corners */
+  
+  --sidebar:              oklch(0.990 0.005 210);   /* pure white sidebar */
+  --sidebar-foreground:   oklch(0.200 0.035 170);
+  --sidebar-border:       oklch(0.925 0.015 210);
+  --sidebar-accent:       oklch(0.950 0.020 210);
+  --sidebar-accent-foreground: oklch(0.480 0.145 170);
+  --sidebar-ring:         oklch(0.480 0.145 170);
+}
+
+/* Breeze CSS styling overrides */
+html[data-theme="breeze"] h1,
+html[data-theme="breeze"] h2,
+html[data-theme="breeze"] h3,
+html[data-theme="breeze"] h4,
+html[data-theme="breeze"] h5,
+html[data-theme="breeze"] h6 {
+  font-family: var(--font-geist-sans), Inter, sans-serif !important;
+  font-weight: 705;
+  letter-spacing: -0.02em;
+  color: oklch(0.200 0.035 170);
+}
+
+html[data-theme="breeze"] .card,
+html[data-theme="breeze"] [role="region"],
+html[data-theme="breeze"] div.border {
+  box-shadow: 0 4px 20px -2px rgba(15, 118, 110, 0.03), 0 2px 8px -1px rgba(0, 0, 0, 0.01) !important;
+  border-color: oklch(0.925 0.015 210) !important;
+}
+
+html[data-theme="breeze"] button:not(.relative) {
+  border-radius: 9999px !important;  /* Pill shape! */
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+html[data-theme="breeze"] input,
+html[data-theme="breeze"] select,
+html[data-theme="breeze"] textarea {
+  border-radius: 9999px !important;  /* Rounded form fields! */
+  padding-left: 1.25rem !important;
+  padding-right: 1.25rem !important;
+  border-color: oklch(0.880 0.020 210) !important;
+}
+
+html[data-theme="breeze"] textarea {
+  border-radius: 1rem !important;   /* Textarea needs slightly less than pill */
+}
+
+/* Custom dual-pulse loading icon for breeze */
+html[data-theme="breeze"] .animate-spin {
+  border-top-color: oklch(0.480 0.145 170) !important;
+  border-right-color: transparent !important;
+  border-bottom-color: oklch(0.930 0.025 210) !important;
+  border-left-color: transparent !important;
+  border-width: 3px !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DARK MODE  (applies on top of whichever theme is active, except neo-cyber and breeze)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.dark:not([data-theme="neo-cyber"]):not([data-theme="breeze"]) {
+  --background:       oklch(0.125 0 0);
+  --foreground:       oklch(0.985 0 0);
+  --card:             oklch(0.175 0 0);
+  --card-foreground:  oklch(0.985 0 0);
+  --popover:          oklch(0.175 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary:          oklch(0.541 0.231 264.376);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary:        oklch(0.240 0 0);
+  --secondary-foreground: oklch(0.920 0 0);
+  --muted:            oklch(0.215 0 0);
+  --muted-foreground: oklch(0.720 0 0);
+  --accent:           oklch(0.240 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive:      oklch(0.704 0.191 22.216);
+  --border:           oklch(1 0 0 / 10%);
+  --input:            oklch(1 0 0 / 16%);
+  --ring:             oklch(0.541 0.231 264.376);
+  --sidebar:          oklch(0.175 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-border:   oklch(1 0 0 / 10%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BASE LAYER — reset, body, html
+═══════════════════════════════════════════════════════════════════════════ */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+    border-color: var(--border);
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.5;
+  }
+
+  /* Native textarea gets the same treatment as <Input> */
+  textarea {
+    background-color: var(--card);
+    border: 1.5px solid var(--input);
+    border-radius: calc(var(--radius) * 0.85);
+    color: var(--foreground);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    width: 100%;
+    resize: vertical;
+  }
+  textarea::placeholder {
+    color: var(--muted-foreground);
+    opacity: 0.8;
+  }
+  textarea:focus {
+    border-color: var(--ring);
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 18%, transparent);
+  }
+  textarea:disabled {
+    background-color: var(--muted);
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Focus outline for keyboard nav */
+  :focus-visible {
+    outline-offset: 2px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SEMANTIC STATUS BADGE UTILITIES
+   Used throughout pages: <span className="badge badge-success" />
+═══════════════════════════════════════════════════════════════════════════ */
+@layer utilities {
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 9999px;
+    padding: 0.15rem 0.6rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-width: 1px;
+  }
+  .badge-success  { background: oklch(0.958 0.038 152); color: oklch(0.340 0.110 152); border-color: oklch(0.880 0.060 152); }
+  .badge-warning  { background: oklch(0.960 0.058 78);  color: oklch(0.380 0.120 75);  border-color: oklch(0.870 0.100 80);  }
+  .badge-error    { background: oklch(0.960 0.048 25);  color: oklch(0.410 0.170 25);  border-color: oklch(0.870 0.090 25);  }
+  .badge-info     { background: oklch(0.940 0.038 264); color: oklch(0.410 0.170 264); border-color: oklch(0.860 0.080 264); }
+  .badge-neutral  { background: oklch(0.935 0.005 264); color: oklch(0.390 0.015 264); border-color: oklch(0.860 0.015 264); }
+  .badge-purple   { background: oklch(0.945 0.038 290); color: oklch(0.390 0.170 285); border-color: oklch(0.860 0.080 288); }
+
+  /* Skeleton shimmer */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      oklch(0.925 0.004 264) 25%,
+      oklch(0.945 0.004 264) 50%,
+      oklch(0.925 0.004 264) 75%
+    );
+    background-size: 1200px 100%;
+    animation: skeleton-shimmer 1.6s ease-in-out infinite;
+    border-radius: var(--radius);
+  }
+  .dark .skeleton {
+    background: linear-gradient(
+      90deg,
+      oklch(0.210 0 0) 25%,
+      oklch(0.250 0 0) 50%,
+      oklch(0.210 0 0) 75%
+    );
+    background-size: 1200px 100%;
+  }
+
+  /* Fade-in animation for page content */
+  .animate-fade-in {
+    animation: page-fade-in 0.22s ease-out both;
+  }
+
+  /* Scale-in for modals / cards */
+  .animate-scale-in {
+    animation: scale-in 0.18s ease-out both;
+  }
+
+  /* Slide up for toasts / popups */
+  .animate-slide-up {
+    animation: slide-up 0.22s ease-out both;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   KEYFRAMES
+═══════════════════════════════════════════════════════════════════════════ */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+@keyframes page-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SCROLLBAR — subtle, modern (WebKit)
+═══════════════════════════════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: oklch(0.840 0.008 264);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: oklch(0.720 0.012 264); }

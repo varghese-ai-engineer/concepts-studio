@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Fully static site — emit plain HTML/CSS/JS to out/ for nginx to serve.
+  output: "export",
   async rewrites() {
     // In production, Nginx proxies /api/* directly to the backend, so this
     // never applies there. Locally there's no reverse proxy in front of the

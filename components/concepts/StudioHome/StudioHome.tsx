@@ -278,12 +278,12 @@ export function StudioHome() {
               }}
               transition={{ duration: 0.8, ease: EASE, delay: 1.3 }}
             >
-              <Link href="/register">
+              <Link href="https://test.app.webchat.aisolutioncraft.com/">
                 <Button size="lg">
                   Start free <ArrowRight className="ml-2 size-4" />
                 </Button>
               </Link>
-              <Link href="#pricing">
+              <Link href="https://test.app.webchat.aisolutioncraft.com/">
                 <Button variant="outline" size="lg">
                   See pricing
                 </Button>
@@ -417,12 +417,12 @@ export function StudioHome() {
                 Set up in minutes. No credit card to start.
               </motion.p>
               <motion.div className={s.finalButtons} {...sceneReveal(0.2)}>
-                <Link href="/register">
+                <Link href="https://test.app.webchat.aisolutioncraft.com/">
                   <Button size="lg">
                     Start free <ArrowRight className="ml-2 size-4" />
                   </Button>
                 </Link>
-                <Link href="/concepts">
+                <Link href="https://test.app.webchat.aisolutioncraft.com/">
                   <Button variant="outline" size="lg">
                     Compare all designs
                   </Button>
@@ -829,7 +829,7 @@ function StudioPricing() {
         return_url: null,
       })
     );
-    window.location.href = '/register';
+    window.location.href = 'https://test.app.webchat.aisolutioncraft.com/';
   };
 
   return (
@@ -886,7 +886,7 @@ function StudioPricing() {
             transition={{ duration: 0.6, ease: EASE, delay: 0.3 }}
           >
             <span>Prices in {visiblePlans[0]?.currency || 'USD'}. Adjusts to your region.</span>
-            <Link href="/register" className={s.priceSeeAll}>
+            <Link href="https://test.app.webchat.aisolutioncraft.com/" className={s.priceSeeAll}>
               See all plans <ArrowRight className="size-3.5" />
             </Link>
           </motion.div>

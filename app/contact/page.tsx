@@ -53,7 +53,7 @@ export default function ContactPage() {
           {status === 'error' && (
             <p className="form-note" role="alert">
               {error} Please try again or email us directly at
-              hello@aisolutioncraft.com.
+              vargheset@aisolutioncraft.com.
             </p>
           )}
           <form className="contact-form" onSubmit={handleSubmit}>
@@ -95,7 +95,7 @@ export default function ContactPage() {
               </button>
             </div>
             <p className="form-note">
-              Prefer email? Write to us directly at hello@aisolutioncraft.com.
+              Prefer email? Write to us directly at vargheset@aisolutioncraft.com.
             </p>
           </form>
         </section>

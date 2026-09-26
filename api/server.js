@@ -92,6 +92,21 @@ const server = http.createServer((req, res) => {
           subject: `[Contact] ${topic} — ${name}${company ? ` (${company})` : ''}`,
           text: `Name: ${name}\nEmail: ${email}\nCompany: ${company || '-'}\nTopic: ${topic}\n\n${message}`,
         });
+        // Auto-confirmation to the visitor (best-effort; failure here must not fail the request)
+        try {
+          await transporter.sendMail({
+            from: `"AI Solution Craft" <${SMTP_USER}>`,
+            to: email,
+            subject: 'We received your message — AI Solution Craft',
+            text:
+              `Hi ${name},\n\nThank you for contacting AI Solution Craft. ` +
+              `We have received your message and will get back to you within one business day.\n\n` +
+              `Your message:\n"${message.slice(0, 1000)}"\n\n` +
+              `— The AI Solution Craft Team\nhttps://webchat.aisolutioncraft.com`,
+          });
+        } catch (e) {
+          console.error('confirmation sendMail failed:', e.message);
+        }
         return json(res, 200, { ok: true, delivered: true });
       } catch (e) {
         console.error('sendMail failed:', e.message);

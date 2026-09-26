@@ -893,3 +893,13 @@
 .priceSeeAll:hover {
   gap: 10px;
 }
+
+.footerLink {
+  color: var(--c-ink-dim);
+  text-decoration: none;
+  margin-left: 14px;
+  transition: color 0.15s ease;
+}
+.footerLink:hover {
+  color: var(--c-ink);
+}

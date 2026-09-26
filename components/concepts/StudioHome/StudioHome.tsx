@@ -431,8 +431,14 @@ export function StudioHome() {
       {/* ---------- FOOTER ---------- */}
       <footer className={s.footer}>
         <div className={s.shell}>
-          <span>AI Solution Craft · Design 1 of 3</span>
-          <span>AI Solution Craft</span>
+          <span>© {new Date().getFullYear()} AI Solution Craft. All rights reserved.</span>
+          <span>
+            <Link href="/ai-assistant" className={s.footerLink}>AI Assistant</Link>
+            <Link href="/features" className={s.footerLink}>Features</Link>
+            <Link href="/use-cases" className={s.footerLink}>Use Cases</Link>
+            <Link href="/about" className={s.footerLink}>About</Link>
+            <Link href="/contact" className={s.footerLink}>Contact</Link>
+          </span>
         </div>
       </footer>
     </div>

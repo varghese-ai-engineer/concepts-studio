@@ -20,10 +20,11 @@ interface Config {
 interface DiagCheck { name: string; pass: boolean; detail: string }
 
 const MEASUREMENT_ID_RE = /^(G|AW|DC)-[A-Z0-9_-]{4,}$/;
+type AuthState = 'checking' | 'login' | 'denied' | 'authed';
 
 export default function AdminAnalyticsPage() {
-  const [token, setToken] = useState('');
-  const [authed, setAuthed] = useState(false);
+  const [authState, setAuthState] = useState<AuthState>('checking');
+  const [email, setEmail] = useState('');
   const [config, setConfig] = useState<Config | null>(null);
   const [pathsText, setPathsText] = useState('');
   const [paramsText, setParamsText] = useState('');
@@ -35,12 +36,29 @@ export default function AdminAnalyticsPage() {
   const [localStatus, setLocalStatus] = useState<ReturnType<typeof trackingStatus> | null>(null);
 
   useEffect(() => {
-    // Token lives in sessionStorage only — cleared when the browser closes.
-    const saved = sessionStorage.getItem('analytics-admin-token');
-    if (saved) {
-      setToken(saved);
-      verifyToken(saved);
+    // Denial is signalled by the OAuth callback via ?denied=1.
+    const denied = new URLSearchParams(window.location.search).get('denied') === '1';
+    if (denied) {
+      setAuthState('denied');
+      window.history.replaceState({}, '', '/admin');
     }
+    fetch('/api/admin/auth/session')
+      .then(async (r) => {
+        if (!r.ok) {
+          if (!denied) setAuthState('login');
+          return null;
+        }
+        return r.json();
+      })
+      .then((sess) => {
+        if (sess && sess.authenticated) {
+          setEmail(sess.email);
+          setAuthState('authed');
+        }
+      })
+      .catch(() => { if (!denied) setAuthState('login'); });
+
+    // Public config shapes defaults for the form once authenticated.
     fetch('/api/analytics-config')
       .then((r) => (r.ok ? r.json() : null))
       .then((cfg) => {
@@ -54,24 +72,11 @@ export default function AdminAnalyticsPage() {
     setLocalStatus(trackingStatus(window.location.pathname));
   }, []);
 
-  async function verifyToken(t: string) {
-    setErrors('');
-    try {
-      const res = await fetch('/api/admin/analytics-diagnose', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${t}` },
-      });
-      if (res.status === 401) {
-        sessionStorage.removeItem('analytics-admin-token');
-        setAuthed(false);
-        setErrors('Invalid admin token');
-        return;
-      }
-      sessionStorage.setItem('analytics-admin-token', t);
-      setAuthed(true);
-    } catch {
-      setErrors('API unreachable');
-    }
+  async function logout() {
+    await fetch('/api/admin/auth/logout', { method: 'POST' }).catch(() => {});
+    setAuthState('login');
+    setEmail('');
+    setConfig(null);
   }
 
   function parseParams(text: string): { name: string; value: string }[] | null {
@@ -99,9 +104,11 @@ export default function AdminAnalyticsPage() {
     try {
       const res = await fetch('/api/admin/analytics-config', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({ ...config, excludedPaths, customParameters }),
       });
+      if (res.status === 401) { setAuthState('login'); setErrors('Session expired — please sign in again.'); setSaving(false); return; }
       const data = await res.json();
       if (!res.ok) {
         setErrors((data.errors || [data.error || 'Save failed']).join('\n'));
@@ -118,10 +125,7 @@ export default function AdminAnalyticsPage() {
   async function runDiagnostics() {
     setErrors(''); setDiag(null);
     try {
-      const res = await fetch('/api/admin/analytics-diagnose', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch('/api/admin/analytics-diagnose', { method: 'POST', credentials: 'same-origin' });
       const data = await res.json();
       if (!res.ok) { setErrors(data.error || 'Diagnostics failed'); return; }
       setDiag(data.checks);
@@ -139,6 +143,48 @@ export default function AdminAnalyticsPage() {
     });
   }
 
+  // ── Auth-gate states ─────────────────────────────────────────────────────
+  if (authState === 'checking') {
+    return (
+      <SitePage>
+        <div className="page-wrap"><p className="page-sub">Checking admin session…</p></div>
+      </SitePage>
+    );
+  }
+
+  if (authState === 'login' || authState === 'denied') {
+    return (
+      <SitePage>
+        <div className="page-wrap" style={{ maxWidth: '460px' }}>
+          {authState === 'denied' ? (
+            <div className="admin-card" style={{ textAlign: 'center' }}>
+              <h2>Access Denied</h2>
+              <p style={{ color: 'var(--sp-ink-2)', lineHeight: 1.7, fontSize: '.92rem' }}>
+                Your Google account is not authorized to administer this site.
+                Sign in with an authorized admin account, or return to the{' '}
+                <a href="/" style={{ color: 'var(--sp-ember)' }}>website</a>.
+              </p>
+              <a className="btn-primary" href="/api/admin/auth/google" style={{ display: 'inline-block', marginTop: '.5rem', textDecoration: 'none' }}>
+                Try another account
+              </a>
+            </div>
+          ) : (
+            <div className="admin-card" style={{ textAlign: 'center' }}>
+              <h2>Admin Login</h2>
+              <p style={{ color: 'var(--sp-ink-2)', lineHeight: 1.7, fontSize: '.92rem' }}>
+                Sign in with an authorized Google account to manage this website.
+              </p>
+              <a className="btn-primary" href="/api/admin/auth/google" style={{ display: 'inline-block', marginTop: '.5rem', textDecoration: 'none' }}>
+                Sign in with Google
+              </a>
+            </div>
+          )}
+        </div>
+      </SitePage>
+    );
+  }
+
+  // ── Authenticated: existing Analytics Admin UI ───────────────────────────
   return (
     <SitePage>
       <div className="page-wrap">
@@ -146,32 +192,16 @@ export default function AdminAnalyticsPage() {
           <p className="page-kicker">Admin</p>
           <h1 className="page-title">Google Analytics</h1>
           <p className="page-sub">
-            Configure GA4 tracking for webchat.aisolutioncraft.com. Changes take
-            effect on the next page load.
+            Signed in as <strong>{email}</strong> ·{' '}
+            <button
+              type="button"
+              onClick={logout}
+              style={{ background: 'none', border: 'none', padding: 0, color: 'var(--sp-ember)', cursor: 'pointer', font: 'inherit', textDecoration: 'underline' }}
+            >
+              Log out
+            </button>
           </p>
         </div>
-
-        {!authed ? (
-          <section className="page-section">
-            <div className="admin-card">
-              <h2>Admin access</h2>
-              <div className="admin-row">
-                <label htmlFor="admin-token">Admin token</label>
-                <input
-                  id="admin-token"
-                  type="password"
-                  value={token}
-                  onChange={(e) => setToken(e.target.value)}
-                  placeholder="Paste the ANALYTICS_ADMIN_TOKEN"
-                />
-                <span className="admin-hint">Stored in this browser session only.</span>
-              </div>
-              <button type="button" className="btn-primary" onClick={() => verifyToken(token)}>
-                Unlock configuration
-              </button>
-            </div>
-          </section>
-        ) : null}
 
         {errors ? <div className="admin-error" role="alert">{errors}</div> : null}
         {okMsg ? <div className="admin-ok" role="status">{okMsg}</div> : null}
@@ -262,7 +292,7 @@ export default function AdminAnalyticsPage() {
 
             <section className="admin-card">
               <h2>Save</h2>
-              <button type="button" className="btn-primary" disabled={saving || !authed} onClick={handleSave}>
+              <button type="button" className="btn-primary" disabled={saving} onClick={handleSave}>
                 {saving ? 'Saving…' : 'Save configuration'}
               </button>
               {config.updatedAt ? (

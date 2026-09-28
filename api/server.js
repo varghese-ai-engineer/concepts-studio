@@ -6,11 +6,15 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const analyticsConfig = require('./analytics-config');
+const auth = require('./auth');
 
 const {
   SMTP_HOST, SMTP_PORT = '587', SMTP_USER, SMTP_PASS,
   CONTACT_TO = 'hello@aisolutioncraft.com', PORT: LISTEN = '3000',
   ANALYTICS_ADMIN_TOKEN,
+  GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
+  ADMIN_EMAILS, SESSION_SECRET,
+  PUBLIC_BASE_URL = 'https://webchat.aisolutioncraft.com',
 } = process.env;
 
 const DATA_DIR = process.env.DATA_DIR || '/data';
@@ -53,10 +57,75 @@ function json(res, code, obj) {
   res.end(JSON.stringify(obj));
 }
 
+// ── Admin authentication ─────────────────────────────────────────────────
+// Normal admin usage: Google SSO session cookie (HttpOnly, signed).
+// Machine/script fallback: Bearer ANALYTICS_ADMIN_TOKEN (tests, CI checks).
+function getSessionUser(req) {
+  if (!SESSION_SECRET) return null;
+  const cookies = auth.parseCookies(req.headers.cookie);
+  const session = auth.verifySessionToken(cookies[auth.SESSION_COOKIE], SESSION_SECRET);
+  return session ? session.email : null;
+}
+
 function isAdminAuthorized(req) {
-  if (!ANALYTICS_ADMIN_TOKEN) return false; // no token configured ⇒ admin API closed
+  if (getSessionUser(req)) return true;
+  if (!ANALYTICS_ADMIN_TOKEN) return false; // no fallback configured ⇒ closed
   const header = req.headers.authorization || '';
   return header === `Bearer ${ANALYTICS_ADMIN_TOKEN}`;
+}
+
+const cookieSecure = PUBLIC_BASE_URL.startsWith('https');
+
+function redirect(res, location, cookies = []) {
+  res.writeHead(302, { Location: location, ...(cookies.length ? { 'Set-Cookie': cookies } : {}) });
+  res.end();
+}
+
+function handleGoogleAuthStart(req, res) {
+  if (!GOOGLE_CLIENT_ID || !SESSION_SECRET) {
+    return json(res, 503, { ok: false, error: 'Google SSO is not configured on the server' });
+  }
+  const state = auth.createState();
+  const redirectUri = `${PUBLIC_BASE_URL}/api/admin/auth/google/callback`;
+  const cookies = [
+    auth.serializeCookie(auth.STATE_COOKIE, state, { maxAgeSeconds: auth.STATE_TTL_MS / 1000, secure: cookieSecure }),
+  ];
+  redirect(res, auth.buildAuthorizeUrl(GOOGLE_CLIENT_ID, redirectUri, state), cookies);
+}
+
+async function handleGoogleAuthCallback(req, res, query) {
+  const cookies = auth.parseCookies(req.headers.cookie);
+  const code = query.get('code');
+  const state = query.get('state');
+  const deniedByUser = query.get('error') === 'access_denied';
+
+  const fail = () =>
+    redirect(res, '/admin?denied=1', [auth.serializeCookie(auth.STATE_COOKIE, '', { maxAgeSeconds: 0, secure: cookieSecure })]);
+
+  if (deniedByUser) return redirect(res, '/admin');
+  if (!code || !state || !auth.stateMatches(cookies[auth.STATE_COOKIE], state)) return fail();
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !SESSION_SECRET) return fail();
+
+  let user;
+  try {
+    const redirectUri = `${PUBLIC_BASE_URL}/api/admin/auth/google/callback`;
+    user = await auth.exchangeCodeAndGetUser(code, redirectUri, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
+  } catch (e) {
+    console.error('google auth callback failed:', e.message);
+    return fail();
+  }
+
+  if (!auth.isAuthorizedEmail(user.email, ADMIN_EMAILS)) {
+    // Authenticated with Google, but not an authorized admin — no session.
+    console.warn(`admin login denied for ${user.email.replace(/(.{2}).*(@.*)/, '$1***$2')}`);
+    return fail();
+  }
+
+  const session = auth.createSessionToken(user.email, SESSION_SECRET);
+  redirect(res, '/admin', [
+    auth.serializeCookie(auth.STATE_COOKIE, '', { maxAgeSeconds: 0, secure: cookieSecure }),
+    auth.serializeCookie(auth.SESSION_COOKIE, session, { maxAgeSeconds: auth.SESSION_TTL_MS / 1000, secure: cookieSecure }),
+  ]);
 }
 
 function readBody(req) {
@@ -76,6 +145,26 @@ function readBody(req) {
 
 const server = http.createServer((req, res) => {
   const url = (req.url || '').split('?')[0];
+
+  // ── Admin auth (Google SSO) ─────────────────────────────────────────────
+  if (url === '/api/admin/auth/google' && req.method === 'GET') {
+    return handleGoogleAuthStart(req, res);
+  }
+
+  if (url === '/api/admin/auth/google/callback' && req.method === 'GET') {
+    const query = new URL(req.url, PUBLIC_BASE_URL).searchParams;
+    return handleGoogleAuthCallback(req, res, query);
+  }
+
+  if (url === '/api/admin/auth/session' && req.method === 'GET') {
+    const email = getSessionUser(req);
+    if (!email) return json(res, 401, { authenticated: false });
+    return json(res, 200, { authenticated: true, email });
+  }
+
+  if (url === '/api/admin/auth/logout' && req.method === 'POST') {
+    return redirect(res, '/admin', [auth.serializeCookie(auth.SESSION_COOKIE, '', { maxAgeSeconds: 0 })]);
+  }
 
   // ── Analytics configuration API ────────────────────────────────────────
   if (url === '/api/analytics-config' && req.method === 'GET') {

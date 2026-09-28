@@ -55,10 +55,35 @@ Sections: **General** (enable, measurement ID, environment, debug),
 consent, respect DNT), **Custom parameters**, **Save**, **Diagnostics**
 (status of the current page + "Run diagnostics" + "Send test event").
 
-Access: paste the `ANALYTICS_ADMIN_TOKEN` once; it is kept in `sessionStorage`
-only for that browser session. All writes require `Authorization: Bearer …`
-and return 401 without it. If `ANALYTICS_ADMIN_TOKEN` is not set on the
-container, the admin endpoints are closed entirely.
+### Admin authentication (Google SSO)
+
+`/admin` is the admin entry point. Unauthenticated visitors see only an
+"Admin Login" screen with a **Sign in with Google** button — no configuration
+fields render. The OAuth 2.0 code flow runs entirely server-side:
+
+1. `GET /api/admin/auth/google` — sets a 10-minute HttpOnly `state` cookie and
+   redirects to Google (CSRF protection).
+2. Google redirects to `GET /api/admin/auth/google/callback` — the server
+   verifies the state, exchanges the code (client secret never leaves the
+   server), requires a verified email, and checks it against the
+   `ADMIN_EMAILS` allowlist.
+3. Authorized → signed `admin_session` HttpOnly cookie (24 h, HMAC-SHA256 with
+   `SESSION_SECRET`) → existing Analytics Admin page (shows the signed-in
+   email + Logout). Unauthorized or any failure → `/admin?denied=1` → Access
+   Denied, no session issued.
+
+All `/api/admin/*` endpoints require the session cookie (or, as a
+machine/script fallback, `Authorization: Bearer $ANALYTICS_ADMIN_TOKEN` —
+not needed for normal admin usage in a browser). `GET /api/analytics-config`
+remains public (sanitized runtime config only).
+
+Environment variables (container only, never in Git or the browser):
+`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `ADMIN_EMAILS` (comma-separated),
+`SESSION_SECRET`, `PUBLIC_BASE_URL` (defaults to the production URL).
+
+Google Cloud Console one-time setup: create an OAuth 2.0 Client ID (Web
+application) with authorized redirect URI
+`https://webchat.aisolutioncraft.com/api/admin/auth/google/callback`.
 
 Diagnostics are honest: they verify configuration existence, measurement ID
 format, enablement, and snippet generatability. They never claim Google

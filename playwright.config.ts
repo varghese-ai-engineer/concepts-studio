@@ -7,6 +7,8 @@ const API_PORT = 3010;
 const WEB_PORT = 3000;
 // Isolated /data per test run so tests never touch real analytics config.
 const dataDir = mkdtempSync(join(tmpdir(), 'ga-e2e-'));
+const SESSION_SECRET = 'test-session-secret';
+const ADMIN_EMAIL = 'admin-e2e@example.com';
 
 export default defineConfig({
   testDir: './tests',
@@ -17,7 +19,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: `DATA_DIR=${dataDir} ANALYTICS_ADMIN_TOKEN=test-token PORT=${API_PORT} node api/server.js`,
+      command: `DATA_DIR=${dataDir} ANALYTICS_ADMIN_TOKEN=test-token SESSION_SECRET=${SESSION_SECRET} ADMIN_EMAILS=${ADMIN_EMAIL} GOOGLE_CLIENT_ID=test-client-id GOOGLE_CLIENT_SECRET=test-client-secret PUBLIC_BASE_URL=http://localhost:${API_PORT} PORT=${API_PORT} node api/server.js`,
       port: API_PORT,
       reuseExistingServer: false,
       timeout: 15000,

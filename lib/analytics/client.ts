@@ -38,9 +38,13 @@ export function setConsent(granted: boolean) {
   if (typeof window === 'undefined') return;
   window.localStorage.setItem(CONSENT_KEY, granted ? 'granted' : 'denied');
   if (granted && config?.enabled) {
-    // Consent just granted — initialize GA4 now (it was withheld until here).
+    // Consent just granted — initialize GA4 now (it was withheld until here)
+    // and record the page view the visitor is already on.
     loadGa4(config.measurementId, config.customParameters, config.debugMode);
     setGa4Consent(true);
+    if (config.trackPageViews && !isPathExcluded(window.location.pathname, config.excludedPaths)) {
+      ga4TrackPageView(window.location.pathname);
+    }
   } else if (isGa4Loaded()) {
     setGa4Consent(false);
   }

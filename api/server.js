@@ -5,10 +5,12 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const analyticsConfig = require('./analytics-config');
 
 const {
   SMTP_HOST, SMTP_PORT = '587', SMTP_USER, SMTP_PASS,
   CONTACT_TO = 'hello@aisolutioncraft.com', PORT: LISTEN = '3000',
+  ANALYTICS_ADMIN_TOKEN,
 } = process.env;
 
 const DATA_DIR = process.env.DATA_DIR || '/data';
@@ -51,8 +53,60 @@ function json(res, code, obj) {
   res.end(JSON.stringify(obj));
 }
 
+function isAdminAuthorized(req) {
+  if (!ANALYTICS_ADMIN_TOKEN) return false; // no token configured ⇒ admin API closed
+  const header = req.headers.authorization || '';
+  return header === `Bearer ${ANALYTICS_ADMIN_TOKEN}`;
+}
+
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', (c) => {
+      body += c;
+      if (body.length > 64 * 1024) {
+        reject(new Error('Payload too large'));
+        req.destroy();
+      }
+    });
+    req.on('end', () => resolve(body));
+    req.on('error', reject);
+  });
+}
+
 const server = http.createServer((req, res) => {
-  if (req.method !== 'POST' || req.url !== '/api/contact') {
+  const url = (req.url || '').split('?')[0];
+
+  // ── Analytics configuration API ────────────────────────────────────────
+  if (url === '/api/analytics-config' && req.method === 'GET') {
+    return json(res, 200, analyticsConfig.publicView());
+  }
+
+  if (url === '/api/admin/analytics-config' && req.method === 'PUT') {
+    if (!isAdminAuthorized(req)) return json(res, 401, { ok: false, error: 'Unauthorized' });
+    return readBody(req)
+      .then((body) => {
+        let incoming;
+        try {
+          incoming = JSON.parse(body || '{}');
+        } catch {
+          return json(res, 400, { ok: false, error: 'Invalid JSON' });
+        }
+        const result = analyticsConfig.validateAndMerge(incoming);
+        if (result.errors) return json(res, 400, { ok: false, errors: result.errors });
+        analyticsConfig.save(result.config);
+        return json(res, 200, { ok: true, config: analyticsConfig.publicView() });
+      })
+      .catch(() => json(res, 413, { ok: false, error: 'Payload too large' }));
+  }
+
+  if (url === '/api/admin/analytics-diagnose' && req.method === 'POST') {
+    if (!isAdminAuthorized(req)) return json(res, 401, { ok: false, error: 'Unauthorized' });
+    return json(res, 200, { ok: true, ...analyticsConfig.diagnose() });
+  }
+
+  // ── Contact form API ───────────────────────────────────────────────────
+  if (req.method !== 'POST' || url !== '/api/contact') {
     return json(res, 404, { ok: false, error: 'Not found' });
   }
   let body = '';

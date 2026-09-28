@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Fraunces } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { AnalyticsProvider } from "@/components/analytics/AnalyticsProvider";
+import { PageViewTracker } from "@/components/analytics/PageViewTracker";
+import { ConsentBanner } from "@/components/consent/ConsentBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,7 +55,10 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
+          <AnalyticsProvider />
+          <PageViewTracker />
           {children}
+          <ConsentBanner />
         </ThemeProvider>
       </body>
     </html>

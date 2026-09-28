@@ -16,6 +16,7 @@ export default function ContactPage() {
     e.preventDefault();
     setStatus('sending');
     setError('');
+    import('@/lib/analytics/client').then((m) => m.trackEvent('form_submit', { form_name: 'contact', form_topic: form.topic }));
     try {
       const res = await fetch('/api/contact', {
         method: 'POST',

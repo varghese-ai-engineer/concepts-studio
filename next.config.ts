@@ -11,10 +11,11 @@ const nextConfig: NextConfig = {
     // Also proxy /widget/*, /demo, and /widget.js which are served by the
     // backend (not Next.js) — needed for the Test AI console iframe.
     if (process.env.NODE_ENV === "production") return [];
+    const apiTarget = process.env.API_PROXY_TARGET || "http://localhost:8000";
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:8000/api/:path*",
+        destination: `${apiTarget}/api/:path*`,
       },
       {
         source: "/widget/:path*",

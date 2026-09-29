@@ -4,12 +4,13 @@ import { SitePage } from '@/components/site/SitePage';
 export const metadata: Metadata = {
   title: 'AI Assistant for Business — AI Chatbot & Knowledge Automation | AI Solution Craft',
   description:
-    'Deploy an AI assistant that answers customer questions 24/7, captures leads, and turns your website content into a self-service knowledge base. Enterprise-grade AI chatbot platform.',
+    'A business AI assistant trained on your website content that answers customer questions 24/7, captures leads, and serves as your knowledge assistant. Set up in minutes — no developers.',
   alternates: { canonical: 'https://webchat.aisolutioncraft.com/ai-assistant' },
   openGraph: {
-    title: 'AI Assistant for Business | AI Solution Craft',
+    title: 'Business AI Assistant — Trained on Your Website | AI Solution Craft',
     description:
-      '24/7 AI assistant and chatbot for customer support, lead generation, and knowledge automation.',
+      'AI assistant for customer support and lead generation, trained on your own content. 24/7 answers with voice.',
+    url: 'https://webchat.aisolutioncraft.com/ai-assistant',
     type: 'website',
   },
 };

@@ -15,6 +15,9 @@ export function SiteFooter() {
           <Link href="/ai-assistant">AI Assistant</Link>
           <Link href="/features">Features</Link>
           <Link href="/use-cases">Use Cases</Link>
+          <Link href="/ai-customer-support">AI Customer Support</Link>
+          <Link href="/voice-ai-chatbot">Voice AI Chatbot</Link>
+          <Link href="/lead-generation-chatbot">Lead Generation</Link>
           <Link href="/about">About</Link>
           <Link href="/contact">Contact</Link>
         </nav>

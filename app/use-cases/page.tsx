@@ -1,11 +1,18 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { SitePage } from '@/components/site/SitePage';
 
 export const metadata: Metadata = {
   title: 'AI Assistant Use Cases — Support, Sales, SaaS, Healthcare & More | AI Solution Craft',
   description:
-    'How teams use AI Solution Craft: customer support automation, website lead generation, internal knowledge assistants for HR and IT, and AI chatbots for SaaS, ecommerce, healthcare, and education.',
+    'AI customer support automation and lead generation use cases: support chatbots for small business, AI sales assistants, internal knowledge assistants, and AI chatbots for SaaS, ecommerce, and healthcare.',
   alternates: { canonical: 'https://webchat.aisolutioncraft.com/use-cases' },
+  openGraph: {
+    title: 'AI Customer Support Automation & Lead Gen Use Cases | AI Solution Craft',
+    description: 'How teams automate support and generate leads with an AI assistant for small business and beyond.',
+    url: 'https://webchat.aisolutioncraft.com/use-cases',
+    type: 'website',
+  },
 };
 
 export default function UseCasesPage() {
@@ -29,13 +36,15 @@ export default function UseCasesPage() {
           <p>
             The assistant resolves the repetitive 70% of tickets — order status,
             pricing, returns, business hours — and escalates the complex 30% with a
-            full transcript attached. Support costs drop; CSAT rises.
+            full transcript attached. Support costs drop; CSAT rises. See the{' '}
+            <Link href="/ai-customer-support">AI customer support chatbot</Link> page
+            for the full picture.
           </p>
           <h2>Website lead generation</h2>
           <p>
             Every anonymous visitor is a conversation waiting to happen. The
             assistant engages, qualifies, and books demos while your sales team
-            sleeps.
+            sleeps — a true <Link href="/lead-generation-chatbot">AI sales assistant</Link>.
           </p>
           <h2>Internal knowledge assistant</h2>
           <p>

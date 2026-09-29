@@ -6,6 +6,12 @@ export const metadata: Metadata = {
   description:
     'Learn about AI Solution Craft: why we build grounded AI assistants and chatbots that answer from your own content, capture leads, and make business knowledge available 24/7.',
   alternates: { canonical: 'https://webchat.aisolutioncraft.com/about' },
+  openGraph: {
+    title: 'About AI Solution Craft — The AI Assistant Platform Team',
+    description: 'Why we build grounded AI assistants that answer from your own content.',
+    url: 'https://webchat.aisolutioncraft.com/about',
+    type: 'website',
+  },
 };
 
 export default function AboutPage() {

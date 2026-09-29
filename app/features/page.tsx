@@ -1,11 +1,18 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { SitePage } from '@/components/site/SitePage';
 
 export const metadata: Metadata = {
   title: 'AI Chatbot Features — RAG Answers, Voice, CRM & Analytics | AI Solution Craft',
   description:
-    'Explore AI Solution Craft features: retrieval-augmented answers from your website content, multilingual voice chat, lead capture, team roles, analytics, and enterprise security.',
+    'Website AI chatbot features: grounded answers from your content (RAG), voice AI chatbot, multilingual support, AI chat widget, lead capture, knowledge sync, and analytics.',
   alternates: { canonical: 'https://webchat.aisolutioncraft.com/features' },
+  openGraph: {
+    title: 'Website AI Chatbot Features — Voice, RAG, Multilingual | AI Solution Craft',
+    description: 'Everything your website AI chatbot needs: RAG answers, voice, AI chat widget, lead capture.',
+    url: 'https://webchat.aisolutioncraft.com/features',
+    type: 'website',
+  },
 };
 
 export default function FeaturesPage() {
@@ -35,13 +42,15 @@ export default function FeaturesPage() {
           <p>
             Customers can talk, not just type. Real-time voice chat with natural
             speech-to-text and text-to-speech, in the languages your audience
-            actually speaks.
+            actually speaks. Learn more about the{' '}
+            <Link href="/voice-ai-chatbot">voice AI chatbot</Link>.
           </p>
           <h2>Lead generation built into every chat</h2>
           <p>
             The assistant asks the right qualifying questions at the right moment,
             then delivers structured leads — name, email, company, and the full
-            conversation — to your CRM or inbox.
+            conversation — to your CRM or inbox. See the{' '}
+            <Link href="/lead-generation-chatbot">lead generation chatbot</Link> in detail.
           </p>
           <h2>Website crawler &amp; knowledge sync</h2>
           <p>

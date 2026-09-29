@@ -3,7 +3,10 @@
   <url><loc>https://webchat.aisolutioncraft.com/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
   <url><loc>https://webchat.aisolutioncraft.com/ai-assistant</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
   <url><loc>https://webchat.aisolutioncraft.com/features</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://webchat.aisolutioncraft.com/use-cases</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://webchat.aisolutioncraft.com/about</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://webchat.aisolutioncraft.com/contact</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://webchat.aisolutioncraft.com/ai-customer-support</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://webchat.aisolutioncraft.com/voice-ai-chatbot</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://webchat.aisolutioncraft.com/lead-generation-chatbot</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://webchat.aisolutioncraft.com/use-cases</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://webchat.aisolutioncraft.com/about</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://webchat.aisolutioncraft.com/contact</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
 </urlset>

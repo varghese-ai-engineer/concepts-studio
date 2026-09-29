@@ -33,8 +33,10 @@ test('accept consent: GA4 initializes and page_view events are generated (incl. 
   expect(gaScript.length).toBeGreaterThanOrEqual(1);
   expect(await page.evaluate(() => typeof window.gtag)).toBe('function');
 
+  // dataLayer entries are `arguments` objects (official gtag snippet form),
+  // so we can't use Array.isArray — duck-type them instead.
   const queued = () => page.evaluate(() =>
-    (window.dataLayer || []).some((a) => Array.isArray(a) && a[0] === 'event' && a[1] === 'page_view'));
+    (window.dataLayer || []).some((a) => a && typeof a !== 'string' && a.length >= 2 && a[0] === 'event' && a[1] === 'page_view'));
   expect(await queued()).toBe(true);
 
   // SPA navigation via client-side link queues another page_view
@@ -42,8 +44,8 @@ test('accept consent: GA4 initializes and page_view events are generated (incl. 
   await page.waitForURL('**/features');
   await page.waitForTimeout(1500);
   const paths = await page.evaluate(() =>
-    (window.dataLayer || [])
-      .filter((a) => Array.isArray(a) && a[0] === 'event' && a[1] === 'page_view')
+    Array.from(window.dataLayer || [])
+      .filter((a) => a && typeof a !== 'string' && a.length >= 2 && a[0] === 'event' && a[1] === 'page_view')
       .map((a) => (a[2] && a[2].page_path) || a[2]));
   expect(paths.some((p: string) => String(p).endsWith('/features'))).toBe(true);
 });

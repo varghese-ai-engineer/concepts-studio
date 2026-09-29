@@ -197,7 +197,7 @@ export function StudioHome() {
               the intro is DONE, the real BrandMark renders inline here — right
               next to the title, in normal flow — so it can NEVER float or drift
               away from the title. */}
-          <Link href="/concepts" className={s.brand} aria-label="AI Solution Craft — home">
+          <Link href="/" className={s.brand} aria-label="AI Solution Craft — home">
             {introPhase === 'done' ? (
               <BrandMark size="nav" />
             ) : (

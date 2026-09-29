@@ -34,8 +34,11 @@ export function loadGa4(measurementId: string, customParameters: { name: string;
   if (runtime.loaded || typeof window === 'undefined' || !measurementId) return;
   const w = window as NonNullable<Window>;
   w.dataLayer = w.dataLayer || [];
+  // GA4's command processor expects `arguments` objects (the official snippet
+  // pattern), not plain arrays — pushing arrays leaves every command inert.
   w.gtag = function gtagStub(this: void, ...args: unknown[]) {
-    w.dataLayer!.push(args);
+    (w.dataLayer as IArguments[]).push(arguments as unknown as IArguments);
+    void args;
   };
   // Consent Mode v2 — denied until explicitly granted by the client.
   w.gtag('consent', 'default', {
